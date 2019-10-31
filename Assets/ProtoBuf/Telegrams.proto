@@ -1,0 +1,11 @@
+syntax = "proto3";
+package Telegrams;
+
+message Request {
+    enum Command {
+        PRINT = 0;
+    }
+
+    Command command = 1;
+    string message = 2;
+}
