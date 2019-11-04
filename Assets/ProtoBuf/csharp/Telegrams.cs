@@ -24,13 +24,16 @@ namespace Telegrams {
     static TelegramsReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "Cg9UZWxlZ3JhbXMucHJvdG8SCVRlbGVncmFtcyJdCgdSZXF1ZXN0EisKB2Nv",
-            "bW1hbmQYASABKA4yGi5UZWxlZ3JhbXMuUmVxdWVzdC5Db21tYW5kEg8KB21l",
-            "c3NhZ2UYAiABKAkiFAoHQ29tbWFuZBIJCgVQUklOVBAAYgZwcm90bzM="));
+            "Cg9UZWxlZ3JhbXMucHJvdG8SCVRlbGVncmFtcyLCAQoHUmVxdWVzdBIrCgdj",
+            "b21tYW5kGAEgASgOMhouVGVsZWdyYW1zLlJlcXVlc3QuQ29tbWFuZBIPCgdt",
+            "ZXNzYWdlGAIgASgJEhIKCnRyYWluaW5nX3gYAyADKAISEgoKdHJhaW5pbmdf",
+            "eRgEIAMoAiJRCgdDb21tYW5kEgkKBVBSSU5UEAASEgoOQkVHSU5fVFJBSU5J",
+            "TkcQARIVChFBRERfVFJBSU5JTkdfREFUQRACEhAKDEVORF9UUkFJTklORxAD",
+            "YgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Telegrams.Request), global::Telegrams.Request.Parser, new[]{ "Command", "Message" }, null, new[]{ typeof(global::Telegrams.Request.Types.Command) }, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Telegrams.Request), global::Telegrams.Request.Parser, new[]{ "Command", "Message", "TrainingX", "TrainingY" }, null, new[]{ typeof(global::Telegrams.Request.Types.Command) }, null)
           }));
     }
     #endregion
@@ -64,6 +67,8 @@ namespace Telegrams {
     public Request(Request other) : this() {
       command_ = other.command_;
       message_ = other.message_;
+      trainingX_ = other.trainingX_.Clone();
+      trainingY_ = other.trainingY_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -94,6 +99,26 @@ namespace Telegrams {
       }
     }
 
+    /// <summary>Field number for the "training_x" field.</summary>
+    public const int TrainingXFieldNumber = 3;
+    private static readonly pb::FieldCodec<float> _repeated_trainingX_codec
+        = pb::FieldCodec.ForFloat(26);
+    private readonly pbc::RepeatedField<float> trainingX_ = new pbc::RepeatedField<float>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<float> TrainingX {
+      get { return trainingX_; }
+    }
+
+    /// <summary>Field number for the "training_y" field.</summary>
+    public const int TrainingYFieldNumber = 4;
+    private static readonly pb::FieldCodec<float> _repeated_trainingY_codec
+        = pb::FieldCodec.ForFloat(34);
+    private readonly pbc::RepeatedField<float> trainingY_ = new pbc::RepeatedField<float>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<float> TrainingY {
+      get { return trainingY_; }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as Request);
@@ -109,6 +134,8 @@ namespace Telegrams {
       }
       if (Command != other.Command) return false;
       if (Message != other.Message) return false;
+      if(!trainingX_.Equals(other.trainingX_)) return false;
+      if(!trainingY_.Equals(other.trainingY_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -117,6 +144,8 @@ namespace Telegrams {
       int hash = 1;
       if (Command != global::Telegrams.Request.Types.Command.Print) hash ^= Command.GetHashCode();
       if (Message.Length != 0) hash ^= Message.GetHashCode();
+      hash ^= trainingX_.GetHashCode();
+      hash ^= trainingY_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -138,6 +167,8 @@ namespace Telegrams {
         output.WriteRawTag(18);
         output.WriteString(Message);
       }
+      trainingX_.WriteTo(output, _repeated_trainingX_codec);
+      trainingY_.WriteTo(output, _repeated_trainingY_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -152,6 +183,8 @@ namespace Telegrams {
       if (Message.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Message);
       }
+      size += trainingX_.CalculateSize(_repeated_trainingX_codec);
+      size += trainingY_.CalculateSize(_repeated_trainingY_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -169,6 +202,8 @@ namespace Telegrams {
       if (other.Message.Length != 0) {
         Message = other.Message;
       }
+      trainingX_.Add(other.trainingX_);
+      trainingY_.Add(other.trainingY_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -188,6 +223,16 @@ namespace Telegrams {
             Message = input.ReadString();
             break;
           }
+          case 26:
+          case 29: {
+            trainingX_.AddEntriesFrom(input, _repeated_trainingX_codec);
+            break;
+          }
+          case 34:
+          case 37: {
+            trainingY_.AddEntriesFrom(input, _repeated_trainingY_codec);
+            break;
+          }
         }
       }
     }
@@ -198,6 +243,9 @@ namespace Telegrams {
     public static partial class Types {
       public enum Command {
         [pbr::OriginalName("PRINT")] Print = 0,
+        [pbr::OriginalName("BEGIN_TRAINING")] BeginTraining = 1,
+        [pbr::OriginalName("ADD_TRAINING_DATA")] AddTrainingData = 2,
+        [pbr::OriginalName("END_TRAINING")] EndTraining = 3,
       }
 
     }

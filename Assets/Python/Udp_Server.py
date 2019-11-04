@@ -1,19 +1,28 @@
 import socket
-import protobuf.Telegrams_pb2 as Telegrams
-
+import threading
 
 class Udp_Server:
+    sock = None
+    buffer_size = None
+    message_received_callback = None
+    ip = None
+    port = None
 
-    def __init__(self):
-        UDP_IP = "127.0.0.1"
-        UDP_PORT = 11000
-         
-        sock = socket.socket(socket.AF_INET, # Internet
-        socket.SOCK_DGRAM) # UDP
-        sock.bind((UDP_IP, UDP_PORT))
-     
+    def receive_data(self):
         while True:
-            data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
-            request = Telegrams.Request()
-            request.ParseFromString(data)
-            print("received message: " + request)
+            data, address = self.sock.recvfrom(self.buffer_size)
+            self.message_received_callback(data, address)
+
+    def send_data(self, protobuf_message, address):
+        self.sock.sendto(protobuf_message.SerializeToString(), address)
+
+    def __init__(self, ip, port, buffer_size, message_received_callback):
+        self.ip = ip
+        self.port = port
+        self.buffer_size = buffer_size
+        self.message_received_callback = message_received_callback
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock.bind((ip, port))
+
+        receive_thread = threading.Thread(target=self.receive_data)
+        receive_thread.start()
