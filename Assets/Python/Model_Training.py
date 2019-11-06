@@ -26,29 +26,29 @@ class Model_Training:
         model = Sequential()
         model.add(input_layer)
         model.add(Dense(60))
-        model.add(Activation("relu"))
+        model.add(Activation("tanh"))
         model.add(Dense(60))
-        model.add(Activation("relu"))
+        model.add(Activation("tanh"))
         model.add(Dense(60))
-        model.add(Activation("relu"))
+        model.add(Activation("tanh"))
         model.add(Dense(60))
-        model.add(Activation("relu"))
+        model.add(Activation("tanh"))
         model.add(Dense(60))
-        model.add(Activation("relu"))
+        model.add(Activation("tanh"))
         model.add(Dense(60))
-        model.add(Activation("relu"))
+        model.add(Activation("tanh"))
         model.add(Dense(60))
-        model.add(Activation("relu"))
+        model.add(Activation("tanh"))
         model.add(Dense(60))
-        model.add(Activation("relu"))                                        
+        model.add(Activation("tanh"))                                        
         model.add(Dense(60))
-        model.add(Activation("relu"))        
+        model.add(Activation("tanh"))        
         model.add(Dense(outputs))
         # model.add(Activation('sigmoid'))
         return model
 
     def _Compile_Model(self, model):
-        optimizer = Adam(lr=0.000010)
+        optimizer = Adam(lr=0.0000010)
         model.compile(loss='mean_squared_error', optimizer=optimizer,metrics=['accuracy'])
         print(model.summary())
         return model
@@ -68,6 +68,10 @@ class Model_Training:
 
     def Train_Epoch(self, train_x, train_y):
         self.model.fit(train_x, train_y, epochs=1, batch_size=32)
+
+    def Predict(self, predict_x):
+        prediction_y = self.model.predict(predict_x)
+        return prediction_y
 
     def __init__(self, inputs, outputs, batch_size = 20000):
         self.batch_size = batch_size

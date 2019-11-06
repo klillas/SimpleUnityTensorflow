@@ -7,10 +7,15 @@ message Request {
         BEGIN_TRAINING = 1;
         ADD_TRAINING_DATA = 2;
         END_TRAINING = 3;
+        PREDICT = 4;
+        PREDICTION = 5;
     }
 
-    Command command = 1;
-    string message = 2;
-    repeated float training_x = 3;
-    repeated float training_y = 4;
+    string transaction_id = 1;
+    Command command = 2;
+    string message = 3;
+    repeated float training_x = 4;
+    repeated float training_y = 5;
+    repeated float predict_x = 6;
+    repeated float prediction_y = 7;
 }

@@ -1,70 +1,80 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using System.IO;
-using System.IO.Pipes;
-using System.Linq;
-using System.Text;
-using System;
+﻿using UnityEngine;
 using System.Threading;
 using System.Net.Sockets;
 using System.Net;
 using Google.Protobuf;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System;
 
-public class ExternalCommunication : MonoBehaviour
+public class ExternalCommunication
 {
-    BlockingCollection<byte[]> send_buffer;
-    Thread pipeThread;
-    UdpClient client;
+    public delegate void RequestAnswerCallback(Telegrams.Request requestAnswer);
 
-    // Start is called before the first frame update
-    void Start()
+    private BlockingCollection<byte[]> send_buffer;
+    private UdpClient client;
+    private IPEndPoint endpoint;
+    private Dictionary<Guid, RequestAnswerCallback> requestAnswerCallbackDictionary;
+
+    private static ExternalCommunication singleton = null;
+
+    private ExternalCommunication()
     {
+        requestAnswerCallbackDictionary = new Dictionary<Guid, RequestAnswerCallback>();
         send_buffer = new BlockingCollection<byte[]>();
         client = new UdpClient();
-        IPEndPoint ep = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 11000); // endpoint where server is listening
-        client.Connect(ep);
+        endpoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 11000); // endpoint where server is listening
+        client.Connect(endpoint);
 
-        pipeThread = new Thread(CommunicationPipe);
-        pipeThread.Start();
+        Thread communicationPipeSend = new Thread(CommunicationPipeSend);
+        communicationPipeSend.Start();
+
+        Thread communicationPipeReceive = new Thread(CommunicationPipeReceive);
+        communicationPipeReceive.Start();
     }
 
-    // Update is called once per frame
-    void Update()
+    public static ExternalCommunication GetSingleton()
     {
+        if (singleton == null)
+        {
+            singleton = new ExternalCommunication();
+        }
+
+        return singleton;
     }
 
-    public void SendAsynch(byte[] data)
+    public void SendAsynch(Telegrams.Request request, RequestAnswerCallback requestAnswerCallback)
     {
-        send_buffer.Add(data);
+        requestAnswerCallbackDictionary.Add(Guid.Parse(request.TransactionId), requestAnswerCallback);
+        SendAsynch(request);
     }
 
-    void CommunicationPipe()
+    public void SendAsynch(Telegrams.Request request)
+    {
+        var outputByteArray = new byte[request.CalculateSize()];
+        request.WriteTo(new CodedOutputStream(outputByteArray));
+
+        send_buffer.Add(outputByteArray);
+    }
+
+    void CommunicationPipeReceive()
+    {
+        while (true)
+        {
+            var receivedData = client.Receive(ref endpoint);
+            var answer = Telegrams.Request.Parser.ParseFrom(receivedData);
+            var transaction_id = Guid.Parse(answer.TransactionId);
+            requestAnswerCallbackDictionary[transaction_id](answer);
+            requestAnswerCallbackDictionary.Remove(transaction_id);
+        }
+    }
+
+    void CommunicationPipeSend()
     {
         while (true)
         {
             var message = send_buffer.Take();
             client.Send(message, message.Length);
         }
-
-        /*
-        // send data
-        var request = new Telegrams.Request();
-        request.Command = Telegrams.Request.Types.Command.Print;
-        request.Message = "Hello World";
-        var outputByteArray = new byte[request.CalculateSize()];
-        request.WriteTo(new CodedOutputStream(outputByteArray));
-
-        while (true)
-        {
-            client.Send(outputByteArray, outputByteArray.Length);
-
-            // then receive data
-            var receivedData = client.Receive(ref ep);
-            var answer = Telegrams.Request.Parser.ParseFrom(receivedData);
-            print(">> " + answer.Message);
-        }
-        */
     }
 }

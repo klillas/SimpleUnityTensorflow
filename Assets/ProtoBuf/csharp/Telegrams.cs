@@ -24,16 +24,18 @@ namespace Telegrams {
     static TelegramsReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "Cg9UZWxlZ3JhbXMucHJvdG8SCVRlbGVncmFtcyLCAQoHUmVxdWVzdBIrCgdj",
-            "b21tYW5kGAEgASgOMhouVGVsZWdyYW1zLlJlcXVlc3QuQ29tbWFuZBIPCgdt",
-            "ZXNzYWdlGAIgASgJEhIKCnRyYWluaW5nX3gYAyADKAISEgoKdHJhaW5pbmdf",
-            "eRgEIAMoAiJRCgdDb21tYW5kEgkKBVBSSU5UEAASEgoOQkVHSU5fVFJBSU5J",
-            "TkcQARIVChFBRERfVFJBSU5JTkdfREFUQRACEhAKDEVORF9UUkFJTklORxAD",
-            "YgZwcm90bzM="));
+            "Cg9UZWxlZ3JhbXMucHJvdG8SCVRlbGVncmFtcyKgAgoHUmVxdWVzdBIWCg50",
+            "cmFuc2FjdGlvbl9pZBgBIAEoCRIrCgdjb21tYW5kGAIgASgOMhouVGVsZWdy",
+            "YW1zLlJlcXVlc3QuQ29tbWFuZBIPCgdtZXNzYWdlGAMgASgJEhIKCnRyYWlu",
+            "aW5nX3gYBCADKAISEgoKdHJhaW5pbmdfeRgFIAMoAhIRCglwcmVkaWN0X3gY",
+            "BiADKAISFAoMcHJlZGljdGlvbl95GAcgAygCIm4KB0NvbW1hbmQSCQoFUFJJ",
+            "TlQQABISCg5CRUdJTl9UUkFJTklORxABEhUKEUFERF9UUkFJTklOR19EQVRB",
+            "EAISEAoMRU5EX1RSQUlOSU5HEAMSCwoHUFJFRElDVBAEEg4KClBSRURJQ1RJ",
+            "T04QBWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Telegrams.Request), global::Telegrams.Request.Parser, new[]{ "Command", "Message", "TrainingX", "TrainingY" }, null, new[]{ typeof(global::Telegrams.Request.Types.Command) }, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Telegrams.Request), global::Telegrams.Request.Parser, new[]{ "TransactionId", "Command", "Message", "TrainingX", "TrainingY", "PredictX", "PredictionY" }, null, new[]{ typeof(global::Telegrams.Request.Types.Command) }, null)
           }));
     }
     #endregion
@@ -65,10 +67,13 @@ namespace Telegrams {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public Request(Request other) : this() {
+      transactionId_ = other.transactionId_;
       command_ = other.command_;
       message_ = other.message_;
       trainingX_ = other.trainingX_.Clone();
       trainingY_ = other.trainingY_.Clone();
+      predictX_ = other.predictX_.Clone();
+      predictionY_ = other.predictionY_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -77,8 +82,19 @@ namespace Telegrams {
       return new Request(this);
     }
 
+    /// <summary>Field number for the "transaction_id" field.</summary>
+    public const int TransactionIdFieldNumber = 1;
+    private string transactionId_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string TransactionId {
+      get { return transactionId_; }
+      set {
+        transactionId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     /// <summary>Field number for the "command" field.</summary>
-    public const int CommandFieldNumber = 1;
+    public const int CommandFieldNumber = 2;
     private global::Telegrams.Request.Types.Command command_ = global::Telegrams.Request.Types.Command.Print;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public global::Telegrams.Request.Types.Command Command {
@@ -89,7 +105,7 @@ namespace Telegrams {
     }
 
     /// <summary>Field number for the "message" field.</summary>
-    public const int MessageFieldNumber = 2;
+    public const int MessageFieldNumber = 3;
     private string message_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public string Message {
@@ -100,9 +116,9 @@ namespace Telegrams {
     }
 
     /// <summary>Field number for the "training_x" field.</summary>
-    public const int TrainingXFieldNumber = 3;
+    public const int TrainingXFieldNumber = 4;
     private static readonly pb::FieldCodec<float> _repeated_trainingX_codec
-        = pb::FieldCodec.ForFloat(26);
+        = pb::FieldCodec.ForFloat(34);
     private readonly pbc::RepeatedField<float> trainingX_ = new pbc::RepeatedField<float>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::RepeatedField<float> TrainingX {
@@ -110,13 +126,33 @@ namespace Telegrams {
     }
 
     /// <summary>Field number for the "training_y" field.</summary>
-    public const int TrainingYFieldNumber = 4;
+    public const int TrainingYFieldNumber = 5;
     private static readonly pb::FieldCodec<float> _repeated_trainingY_codec
-        = pb::FieldCodec.ForFloat(34);
+        = pb::FieldCodec.ForFloat(42);
     private readonly pbc::RepeatedField<float> trainingY_ = new pbc::RepeatedField<float>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::RepeatedField<float> TrainingY {
       get { return trainingY_; }
+    }
+
+    /// <summary>Field number for the "predict_x" field.</summary>
+    public const int PredictXFieldNumber = 6;
+    private static readonly pb::FieldCodec<float> _repeated_predictX_codec
+        = pb::FieldCodec.ForFloat(50);
+    private readonly pbc::RepeatedField<float> predictX_ = new pbc::RepeatedField<float>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<float> PredictX {
+      get { return predictX_; }
+    }
+
+    /// <summary>Field number for the "prediction_y" field.</summary>
+    public const int PredictionYFieldNumber = 7;
+    private static readonly pb::FieldCodec<float> _repeated_predictionY_codec
+        = pb::FieldCodec.ForFloat(58);
+    private readonly pbc::RepeatedField<float> predictionY_ = new pbc::RepeatedField<float>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<float> PredictionY {
+      get { return predictionY_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -132,20 +168,26 @@ namespace Telegrams {
       if (ReferenceEquals(other, this)) {
         return true;
       }
+      if (TransactionId != other.TransactionId) return false;
       if (Command != other.Command) return false;
       if (Message != other.Message) return false;
       if(!trainingX_.Equals(other.trainingX_)) return false;
       if(!trainingY_.Equals(other.trainingY_)) return false;
+      if(!predictX_.Equals(other.predictX_)) return false;
+      if(!predictionY_.Equals(other.predictionY_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
+      if (TransactionId.Length != 0) hash ^= TransactionId.GetHashCode();
       if (Command != global::Telegrams.Request.Types.Command.Print) hash ^= Command.GetHashCode();
       if (Message.Length != 0) hash ^= Message.GetHashCode();
       hash ^= trainingX_.GetHashCode();
       hash ^= trainingY_.GetHashCode();
+      hash ^= predictX_.GetHashCode();
+      hash ^= predictionY_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -159,16 +201,22 @@ namespace Telegrams {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+      if (TransactionId.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(TransactionId);
+      }
       if (Command != global::Telegrams.Request.Types.Command.Print) {
-        output.WriteRawTag(8);
+        output.WriteRawTag(16);
         output.WriteEnum((int) Command);
       }
       if (Message.Length != 0) {
-        output.WriteRawTag(18);
+        output.WriteRawTag(26);
         output.WriteString(Message);
       }
       trainingX_.WriteTo(output, _repeated_trainingX_codec);
       trainingY_.WriteTo(output, _repeated_trainingY_codec);
+      predictX_.WriteTo(output, _repeated_predictX_codec);
+      predictionY_.WriteTo(output, _repeated_predictionY_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -177,6 +225,9 @@ namespace Telegrams {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
+      if (TransactionId.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(TransactionId);
+      }
       if (Command != global::Telegrams.Request.Types.Command.Print) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Command);
       }
@@ -185,6 +236,8 @@ namespace Telegrams {
       }
       size += trainingX_.CalculateSize(_repeated_trainingX_codec);
       size += trainingY_.CalculateSize(_repeated_trainingY_codec);
+      size += predictX_.CalculateSize(_repeated_predictX_codec);
+      size += predictionY_.CalculateSize(_repeated_predictionY_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -196,6 +249,9 @@ namespace Telegrams {
       if (other == null) {
         return;
       }
+      if (other.TransactionId.Length != 0) {
+        TransactionId = other.TransactionId;
+      }
       if (other.Command != global::Telegrams.Request.Types.Command.Print) {
         Command = other.Command;
       }
@@ -204,6 +260,8 @@ namespace Telegrams {
       }
       trainingX_.Add(other.trainingX_);
       trainingY_.Add(other.trainingY_);
+      predictX_.Add(other.predictX_);
+      predictionY_.Add(other.predictionY_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -215,22 +273,36 @@ namespace Telegrams {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
-          case 8: {
+          case 10: {
+            TransactionId = input.ReadString();
+            break;
+          }
+          case 16: {
             Command = (global::Telegrams.Request.Types.Command) input.ReadEnum();
             break;
           }
-          case 18: {
+          case 26: {
             Message = input.ReadString();
-            break;
-          }
-          case 26:
-          case 29: {
-            trainingX_.AddEntriesFrom(input, _repeated_trainingX_codec);
             break;
           }
           case 34:
           case 37: {
+            trainingX_.AddEntriesFrom(input, _repeated_trainingX_codec);
+            break;
+          }
+          case 42:
+          case 45: {
             trainingY_.AddEntriesFrom(input, _repeated_trainingY_codec);
+            break;
+          }
+          case 50:
+          case 53: {
+            predictX_.AddEntriesFrom(input, _repeated_predictX_codec);
+            break;
+          }
+          case 58:
+          case 61: {
+            predictionY_.AddEntriesFrom(input, _repeated_predictionY_codec);
             break;
           }
         }
@@ -246,6 +318,8 @@ namespace Telegrams {
         [pbr::OriginalName("BEGIN_TRAINING")] BeginTraining = 1,
         [pbr::OriginalName("ADD_TRAINING_DATA")] AddTrainingData = 2,
         [pbr::OriginalName("END_TRAINING")] EndTraining = 3,
+        [pbr::OriginalName("PREDICT")] Predict = 4,
+        [pbr::OriginalName("PREDICTION")] Prediction = 5,
       }
 
     }

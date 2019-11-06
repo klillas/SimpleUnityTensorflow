@@ -18,9 +18,13 @@ class Main:
             train_y = np.expand_dims(train_y, axis=0)            
 
             self.model_training.Add_Training_Data(train_x, train_y)
-        # print(telegram.message + " : " + str(telegram.training_x) + " : " + str(telegram.training_y))
-        # request = self.telegram_factory.Create_Print_Request("Hello from python")
-        # self.unity_controller.send(request, address)
+
+        if (telegram.command == Telegrams.Request.PREDICT):
+            predict_x = np.array(telegram.predict_x)
+            predict_x = np.expand_dims(predict_x, axis=0)
+            prediction_y = self.model_training.Predict(predict_x)[0]
+            request = self.telegram_factory.Create_Predict_Request(prediction_y, telegram.transaction_id)
+            self.unity_controller.send(request, address)
 
     def __init__(self):
         model_inputs = 6
@@ -29,7 +33,7 @@ class Main:
         ip = "127.0.0.1"
         port = 11000
 
-        self.model_training = Model_Training.Model_Training(model_inputs, model_outputs)
+        self.model_training = Model_Training.Model_Training(model_inputs, model_outputs, 10000)
         self.telegram_factory = Telegram_Factory.Telegram_Factory()
         self.unity_controller = Unity_Controller.Unity_Controller(ip, port, self.message_received)
 
