@@ -24,14 +24,14 @@ namespace Telegrams {
     static TelegramsReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "Cg9UZWxlZ3JhbXMucHJvdG8SCVRlbGVncmFtcyKgAgoHUmVxdWVzdBIWCg50",
+            "Cg9UZWxlZ3JhbXMucHJvdG8SCVRlbGVncmFtcyKlAgoHUmVxdWVzdBIWCg50",
             "cmFuc2FjdGlvbl9pZBgBIAEoCRIrCgdjb21tYW5kGAIgASgOMhouVGVsZWdy",
             "YW1zLlJlcXVlc3QuQ29tbWFuZBIPCgdtZXNzYWdlGAMgASgJEhIKCnRyYWlu",
             "aW5nX3gYBCADKAISEgoKdHJhaW5pbmdfeRgFIAMoAhIRCglwcmVkaWN0X3gY",
-            "BiADKAISFAoMcHJlZGljdGlvbl95GAcgAygCIm4KB0NvbW1hbmQSCQoFUFJJ",
+            "BiADKAISFAoMcHJlZGljdGlvbl95GAcgAygCInMKB0NvbW1hbmQSCQoFUFJJ",
             "TlQQABISCg5CRUdJTl9UUkFJTklORxABEhUKEUFERF9UUkFJTklOR19EQVRB",
-            "EAISEAoMRU5EX1RSQUlOSU5HEAMSCwoHUFJFRElDVBAEEg4KClBSRURJQ1RJ",
-            "T04QBWIGcHJvdG8z"));
+            "EAISCwoHUFJFRElDVBADEg4KClBSRURJQ1RJT04QBBIVChFUUkFJTklOR19G",
+            "SU5JU0hFRBAFYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
@@ -317,9 +317,9 @@ namespace Telegrams {
         [pbr::OriginalName("PRINT")] Print = 0,
         [pbr::OriginalName("BEGIN_TRAINING")] BeginTraining = 1,
         [pbr::OriginalName("ADD_TRAINING_DATA")] AddTrainingData = 2,
-        [pbr::OriginalName("END_TRAINING")] EndTraining = 3,
-        [pbr::OriginalName("PREDICT")] Predict = 4,
-        [pbr::OriginalName("PREDICTION")] Prediction = 5,
+        [pbr::OriginalName("PREDICT")] Predict = 3,
+        [pbr::OriginalName("PREDICTION")] Prediction = 4,
+        [pbr::OriginalName("TRAINING_FINISHED")] TrainingFinished = 5,
       }
 
     }

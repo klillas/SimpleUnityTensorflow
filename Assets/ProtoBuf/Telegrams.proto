@@ -6,9 +6,9 @@ message Request {
         PRINT = 0;
         BEGIN_TRAINING = 1;
         ADD_TRAINING_DATA = 2;
-        END_TRAINING = 3;
-        PREDICT = 4;
-        PREDICTION = 5;
+        PREDICT = 3;
+        PREDICTION = 4;
+        TRAINING_FINISHED = 5;
     }
 
     string transaction_id = 1;

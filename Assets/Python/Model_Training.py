@@ -17,63 +17,46 @@ import numpy as np
 
 class Model_Training:
     model = None
-    batch_train_x = None
-    batch_train_y = None
-    batch_size = None
 
     def _Create_Model(self, inputs, outputs):
         input_layer = Input(shape=(inputs), name='input')
         model = Sequential()
         model.add(input_layer)
-        model.add(Dense(60))
-        model.add(Activation("tanh"))
-        model.add(Dense(60))
-        model.add(Activation("tanh"))
-        model.add(Dense(60))
-        model.add(Activation("tanh"))
-        model.add(Dense(60))
-        model.add(Activation("tanh"))
-        model.add(Dense(60))
-        model.add(Activation("tanh"))
-        model.add(Dense(60))
-        model.add(Activation("tanh"))
-        model.add(Dense(60))
-        model.add(Activation("tanh"))
-        model.add(Dense(60))
-        model.add(Activation("tanh"))                                        
-        model.add(Dense(60))
-        model.add(Activation("tanh"))        
+        model.add(Dense(5))
+        #model.add(Activation("relu"))
+        #model.add(Dense(60))
+        #model.add(Activation("relu"))
+        #model.add(Dense(60))
+        #model.add(Activation("relu"))
+        #model.add(Dense(60))
+        #model.add(Activation("relu"))
+        #model.add(Dense(60))
+        #model.add(Activation("relu"))
+        #model.add(Dense(60))
+        #model.add(Activation("relu"))
+        #model.add(Dense(60))
+        #model.add(Activation("relu"))
+        #model.add(Dense(60))
+        #model.add(Activation("relu"))                                        
+        #model.add(Dense(60))
+        #model.add(Activation("relu"))
         model.add(Dense(outputs))
-        # model.add(Activation('sigmoid'))
+        #model.add(Activation("tanh"))
         return model
 
     def _Compile_Model(self, model):
-        optimizer = Adam(lr=0.0000010)
+        optimizer = Adam(lr=0.0001000)
         model.compile(loss='mean_squared_error', optimizer=optimizer,metrics=['accuracy'])
         print(model.summary())
         return model
 
-    def Add_Training_Data(self, train_x, train_y):
-        if (self.batch_train_x is None):
-            self.batch_train_x = train_x
-            self.batch_train_y = train_y
-        else:
-            self.batch_train_x = np.append(self.batch_train_x, train_x, axis=0)
-            self.batch_train_y = np.append(self.batch_train_y, train_y, axis=0)
-
-        if ((self.batch_train_x.shape[0] % self.batch_size) == 0):
-            self.Train_Epoch(self.batch_train_x, self.batch_train_y)
-            self.batch_train_x = None
-            self.batch_train_y = None
-
-    def Train_Epoch(self, train_x, train_y):
-        self.model.fit(train_x, train_y, epochs=1, batch_size=32)
+    def Train_Epochs(self, train_x, train_y, epochs = 1000):
+        self.model.fit(train_x, train_y, epochs=epochs, batch_size=32)
 
     def Predict(self, predict_x):
         prediction_y = self.model.predict(predict_x)
         return prediction_y
 
-    def __init__(self, inputs, outputs, batch_size = 20000):
-        self.batch_size = batch_size
+    def __init__(self, inputs, outputs):
         self.model = self._Create_Model(inputs, outputs)
         self._Compile_Model(self.model)

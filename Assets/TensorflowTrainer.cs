@@ -18,7 +18,7 @@ public class TensorflowTrainer : MonoBehaviour
         rigidBody = GetComponent<Rigidbody>();
 
         lastPos = transform.position;
-        lastVelocity = rigidBody.velocity;
+        lastVelocity = new Vector3(0, 0, 0);
     }
 
     // Update is called once per frame
@@ -31,14 +31,10 @@ public class TensorflowTrainer : MonoBehaviour
     {
         lastPos = position;
         transform.position = position;
-
-        if (Predict)
+        lastVelocity = new Vector3(0, -0.19f, 0);
+        if (!Predict)
         {
-            lastVelocity = new Vector3(0, 0, 0);
-        }
-        else
-        {
-            lastVelocity = rigidBody.velocity;
+            rigidBody.velocity = lastVelocity;
         }
     }
 
@@ -49,9 +45,9 @@ public class TensorflowTrainer : MonoBehaviour
         lastPos.y += prediction_y[1];
         lastPos.z += prediction_y[2];
 
-        lastVelocity.x = prediction_y[3];
-        lastVelocity.y = prediction_y[4];
-        lastVelocity.z = prediction_y[5];
+        lastVelocity.x += prediction_y[3];
+        lastVelocity.y += prediction_y[4];
+        lastVelocity.z += prediction_y[5];
 
         waitingForCallback = false;
     }
@@ -99,22 +95,25 @@ public class TensorflowTrainer : MonoBehaviour
             };
 
             float[] training_y = {
-                transform.position.x - lastPos.x,
-                transform.position.y - lastPos.y,
-                transform.position.z - lastPos.z,
-                rigidBody.velocity.x,
-                rigidBody.velocity.y,
-                rigidBody.velocity.z
+                lastPos.x - transform.position.x,
+                lastPos.y - transform.position.y,
+                lastPos.z - transform.position.z,
+                lastVelocity.x - rigidBody.velocity.x,
+                lastVelocity.y - rigidBody.velocity.y,
+                lastVelocity.z - rigidBody.velocity.z
             };
 
             // print(training_x[0] + " " + training_x[1] + " " + training_x[2] + " " + training_x[3] + " " + training_x[4] + " " + training_x[5] + " ");
             // print(training_y[0] + " " + training_y[1] + " " + training_y[2] + " " + training_y[3] + " " + training_y[4] + " " + training_y[5] + " ");
 
+            if (lastVelocity != new Vector3(0, 0, 0))
+            {
+                var request = TelegramFactory.CreateAddTrainingDataRequest(training_x, training_y);
+                externalCommunication.SendAsynch(request);
+            }
+
             lastPos = transform.position;
             lastVelocity = rigidBody.velocity;
-
-            var request = TelegramFactory.CreateAddTrainingDataRequest(training_x, training_y);
-            externalCommunication.SendAsynch(request);
         }
     }
 }

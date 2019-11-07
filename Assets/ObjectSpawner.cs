@@ -1,9 +1,13 @@
-﻿using System;
+﻿using Assets;
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class ObjectSpawner : MonoBehaviour
 {
+    private delegate void MainThreadCallback(object varOne, object varTwo);
+
     public GameObject SpawnObject;
     float xStart = -44;
     float xEnd = 44;
@@ -19,7 +23,9 @@ public class ObjectSpawner : MonoBehaviour
     List<GameObject> spawnedObjects;
     List<GameObject> spawnedPredictionObjects;
     DateTime previousResetTime;
-    bool predictionRunning = false;
+    DateTime startTrainTime;
+    ExternalCommunication externalCommunication;
+    System.Random rand = new System.Random();
 
     // Start is called before the first frame update
     void Start()
@@ -27,14 +33,73 @@ public class ObjectSpawner : MonoBehaviour
         spawnedObjects = new List<GameObject>();
         spawnedPredictionObjects = new List<GameObject>();
         previousResetTime = DateTime.Now;
+        startTrainTime = DateTime.Now;
         xNow = xStart;
         zNow = zStart;
+        externalCommunication = ExternalCommunication.GetSingleton();
+
+        Task.Delay(50000).ContinueWith(t => BeginTraining());
+    }
+
+    void BeginTraining()
+    {
+        UnityMainThreadDispatcher.Instance().Enqueue(delegate()
+        {
+            foreach (var spawnedObject in spawnedObjects)
+            {
+                spawnedObject.GetComponent<TensorflowTrainer>().Paused = true;
+            }
+
+            foreach (var predictionObject in spawnedPredictionObjects)
+            {
+                predictionObject.GetComponent<TensorflowTrainer>().Paused = true;
+            }
+
+            var request = TelegramFactory.CreateBeginTrainingRequest();
+            externalCommunication.SendAsynch(request, TrainingFinishedBeginPrediction);
+        });
+    }
+
+    void TrainingFinishedBeginPrediction(Telegrams.Request requestAnswer)
+    {
+        UnityMainThreadDispatcher.Instance().Enqueue(delegate ()
+        {
+            if (requestAnswer.Command != Telegrams.Request.Types.Command.TrainingFinished)
+            {
+                throw new ArgumentException("Expected Training Finished request from tensorflow");
+            }
+
+            foreach (var predictionObject in spawnedPredictionObjects)
+            {
+                predictionObject.GetComponent<TensorflowTrainer>().Paused = false;
+            }
+
+            //Task.Delay(5000).ContinueWith(t => BeginTrainingDataCollection());
+        });
+    }
+
+    void BeginTrainingDataCollection()
+    {
+        UnityMainThreadDispatcher.Instance().Enqueue(delegate ()
+        {
+            foreach (var spawnedObject in spawnedObjects)
+            {
+                spawnedObject.GetComponent<TensorflowTrainer>().Paused = false;
+            }
+
+            foreach (var predictionObject in spawnedPredictionObjects)
+            {
+                predictionObject.GetComponent<TensorflowTrainer>().Paused = true;
+            }
+
+            Task.Delay(5000).ContinueWith(t => BeginTraining());
+        });
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (spawnedObjects.Count < 100)
+        if (spawnedObjects.Count < 1000)
         {
             xNow = xNow + xDelta;
 
@@ -52,7 +117,7 @@ public class ObjectSpawner : MonoBehaviour
             spawnedObjects.Add(Instantiate(SpawnObject, new Vector3(xNow, yStart, zNow), Quaternion.identity));
         }
 
-        if (spawnedPredictionObjects.Count < 1)
+        if (spawnedPredictionObjects.Count < 5)
         {
             float xPos = 0 + (spawnedPredictionObjects.Count * xDelta);
             float yPos = 2;
@@ -65,51 +130,31 @@ public class ObjectSpawner : MonoBehaviour
             spawnedPredictionObjects.Add(predictionObject);
         }
 
-        var secondsToWait = TimeSpan.FromSeconds(40);
-        if (predictionRunning == true)
+        if (DateTime.Now - previousResetTime > TimeSpan.FromSeconds(3))
         {
-            secondsToWait = TimeSpan.FromSeconds(10);
-        }
-
-        if (DateTime.Now - previousResetTime > secondsToWait)
-        {
-            predictionRunning = !predictionRunning;
             previousResetTime = DateTime.Now;
-
-            if (!predictionRunning)
-            {
-                System.Threading.Thread.Sleep(2000);
-            }
-
+            
             foreach (var spawnedObject in spawnedObjects)
             {
                 var position = new Vector3(
-                    spawnedObject.transform.position.x,
+                    rand.Next(-1000, 1000),
                     yStart,
-                    spawnedObject.transform.position.z);
+                    rand.Next(-1000, 1000));
 
                 spawnedObject.GetComponent<TensorflowTrainer>().ResetTraining(position);
-                spawnedObject.GetComponent<TensorflowTrainer>().Paused = predictionRunning;
             }
 
-            if (predictionRunning)
+            foreach (var predictionObject in spawnedPredictionObjects)
             {
-                System.Threading.Thread.Sleep(2000);
-            }
-
-            foreach (var spawnedPredictionObject in spawnedPredictionObjects)
-            {
-                float xPos = 0 + (spawnedPredictionObjects.IndexOf(spawnedPredictionObject) * xDelta);
+                float xPos = 0 + (spawnedPredictionObjects.Count * xDelta);
                 float yPos = 2;
                 float zPos = -30;
-
                 var position = new Vector3(
                     xPos,
                     yPos,
                     zPos);
 
-                spawnedPredictionObject.GetComponent<TensorflowTrainer>().ResetTraining(position);
-                spawnedPredictionObject.GetComponent<TensorflowTrainer>().Paused = !predictionRunning;
+                predictionObject.GetComponent<TensorflowTrainer>().ResetTraining(position);
             }
         }
     }

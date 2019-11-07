@@ -13,6 +13,14 @@ namespace Assets
             return AddTransactionID(request);
         }
 
+        public static Telegrams.Request CreateBeginTrainingRequest()
+        {
+            var request = new Telegrams.Request();
+            request.Command = Telegrams.Request.Types.Command.BeginTraining;
+
+            return AddTransactionID(request);
+        }
+
         public static Telegrams.Request CreateAddTrainingDataRequest(IEnumerable<float> training_x, IEnumerable<float> training_y)
         {
             var request = new Telegrams.Request();
