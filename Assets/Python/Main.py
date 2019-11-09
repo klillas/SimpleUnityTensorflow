@@ -25,7 +25,7 @@ class Main:
         if (telegram.command == Telegrams.Request.BEGIN_TRAINING):
             print("Request received: BEGIN TRAINING")
             training_x, training_y = self.training_database.Get_Training_Data()
-            self.model_training.Train_Epochs(training_x, training_y, 100)
+            self.model_training.Train_Epochs(training_x, training_y, 1)
 
             request = self.telegram_factory.Create_Training_Finished_Request(telegram.transaction_id)
             self.unity_controller.send(request, address)

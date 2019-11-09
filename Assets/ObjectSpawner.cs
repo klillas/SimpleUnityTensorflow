@@ -38,7 +38,38 @@ public class ObjectSpawner : MonoBehaviour
         zNow = zStart;
         externalCommunication = ExternalCommunication.GetSingleton();
 
-        Task.Delay(50000).ContinueWith(t => BeginTraining());
+        while (spawnedObjects.Count < 200)
+        {
+            xNow = xNow + xDelta;
+
+            if (xNow > xEnd)
+            {
+                xNow = xStart;
+                zNow = zNow + zDelta;
+            }
+
+            if (zNow > zEnd)
+            {
+                zNow = zStart;
+            }
+
+            spawnedObjects.Add(Instantiate(SpawnObject, new Vector3(xNow, yStart, zNow), Quaternion.identity));
+        }
+
+        while (spawnedPredictionObjects.Count < 1)
+        {
+            float xPos = 0 + (spawnedPredictionObjects.Count * xDelta);
+            float yPos = 2;
+            float zPos = -30;
+            var predictionObject = Instantiate(SpawnObject, new Vector3(xPos, yPos, zPos), Quaternion.identity);
+            predictionObject.GetComponent<TensorflowTrainer>().Predict = true;
+            predictionObject.GetComponent<TensorflowTrainer>().Paused = true;
+            Destroy(predictionObject.GetComponent<Rigidbody>());
+            Destroy(predictionObject.GetComponent<SphereCollider>());
+            spawnedPredictionObjects.Add(predictionObject);
+        }
+
+        Task.Delay(300000).ContinueWith(t => BeginTraining());
     }
 
     void BeginTraining()
@@ -48,7 +79,9 @@ public class ObjectSpawner : MonoBehaviour
             foreach (var spawnedObject in spawnedObjects)
             {
                 spawnedObject.GetComponent<TensorflowTrainer>().Paused = true;
+                Destroy(spawnedObject);
             }
+            spawnedObjects.Clear();
 
             foreach (var predictionObject in spawnedPredictionObjects)
             {
@@ -74,6 +107,7 @@ public class ObjectSpawner : MonoBehaviour
                 predictionObject.GetComponent<TensorflowTrainer>().Paused = false;
             }
 
+            Task.Delay(20000).ContinueWith(t => BeginTraining());
             //Task.Delay(5000).ContinueWith(t => BeginTrainingDataCollection());
         });
     }
@@ -99,38 +133,7 @@ public class ObjectSpawner : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (spawnedObjects.Count < 1000)
-        {
-            xNow = xNow + xDelta;
-
-            if (xNow > xEnd)
-            {
-                xNow = xStart;
-                zNow = zNow + zDelta;
-            }
-
-            if (zNow > zEnd)
-            {
-                zNow = zStart;
-            }
-
-            spawnedObjects.Add(Instantiate(SpawnObject, new Vector3(xNow, yStart, zNow), Quaternion.identity));
-        }
-
-        if (spawnedPredictionObjects.Count < 5)
-        {
-            float xPos = 0 + (spawnedPredictionObjects.Count * xDelta);
-            float yPos = 2;
-            float zPos = -30;
-            var predictionObject = Instantiate(SpawnObject, new Vector3(xPos, yPos, zPos), Quaternion.identity);
-            predictionObject.GetComponent<TensorflowTrainer>().Predict = true;
-            predictionObject.GetComponent<TensorflowTrainer>().Paused = true;
-            Destroy(predictionObject.GetComponent<Rigidbody>());
-            Destroy(predictionObject.GetComponent<SphereCollider>());
-            spawnedPredictionObjects.Add(predictionObject);
-        }
-
-        if (DateTime.Now - previousResetTime > TimeSpan.FromSeconds(3))
+        if (DateTime.Now - previousResetTime > TimeSpan.FromSeconds(5))
         {
             previousResetTime = DateTime.Now;
             

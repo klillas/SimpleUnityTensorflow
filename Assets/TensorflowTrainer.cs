@@ -95,12 +95,12 @@ public class TensorflowTrainer : MonoBehaviour
             };
 
             float[] training_y = {
-                lastPos.x - transform.position.x,
-                lastPos.y - transform.position.y,
-                lastPos.z - transform.position.z,
-                lastVelocity.x - rigidBody.velocity.x,
-                lastVelocity.y - rigidBody.velocity.y,
-                lastVelocity.z - rigidBody.velocity.z
+                transform.position.x - lastPos.x,
+                transform.position.y - lastPos.y,
+                transform.position.z - lastPos.z,
+                rigidBody.velocity.x - lastVelocity.x,
+                rigidBody.velocity.y - lastVelocity.y,
+                rigidBody.velocity.z - lastVelocity.z
             };
 
             // print(training_x[0] + " " + training_x[1] + " " + training_x[2] + " " + training_x[3] + " " + training_x[4] + " " + training_x[5] + " ");
