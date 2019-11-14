@@ -64,8 +64,12 @@ public class ExternalCommunication
             var receivedData = client.Receive(ref endpoint);
             var answer = Telegrams.Request.Parser.ParseFrom(receivedData);
             var transaction_id = Guid.Parse(answer.TransactionId);
-            requestAnswerCallbackDictionary[transaction_id](answer);
+            var answerCallback = requestAnswerCallbackDictionary[transaction_id];
             requestAnswerCallbackDictionary.Remove(transaction_id);
+            UnityMainThreadDispatcher.Instance().Enqueue(() =>
+            {
+                answerCallback(answer);
+            });
         }
     }
 

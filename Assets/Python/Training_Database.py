@@ -1,5 +1,6 @@
 import h5py
 import numpy as np
+import random
 
 class Training_Database:
     file = None
@@ -20,5 +21,14 @@ class Training_Database:
         if (self.dataset_training_x.shape[0] % 1000 == 0):
             print(str(self.dataset_training_x.shape[0]) + " items added into training database")
 
-    def Get_Training_Data(self):
-        return self.dataset_training_x[0:], self.dataset_training_y[0:]
+    def Get_Training_Data(self, shuffle = True):
+        dataset_x = self.dataset_training_x[0:]
+        dataset_y = self.dataset_training_y[0:]
+        if (shuffle):
+            self.shuffle((dataset_x, dataset_y))
+        return dataset_x, dataset_y
+
+    def shuffle(self, datasets, random_seed = 654):
+        for d in datasets:
+            random.seed(random_seed)
+            random.shuffle(d)

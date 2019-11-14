@@ -3,89 +3,55 @@ using UnityEngine;
 
 public class TensorflowTrainer : MonoBehaviour
 {
-    public bool Predict = false;
-    public bool Paused = false;
     ExternalCommunication externalCommunication;
     Rigidbody rigidBody;
     Vector3 lastPos;
     Vector3 lastVelocity;
-    bool waitingForCallback = false;
+    GameObject[] avoidableObjects;
+    bool isTraining;
 
     // Start is called before the first frame update
     void Start()
     {
+        isTraining = false;
         externalCommunication = ExternalCommunication.GetSingleton();
         rigidBody = GetComponent<Rigidbody>();
 
         lastPos = transform.position;
         lastVelocity = new Vector3(0, 0, 0);
-    }
+        avoidableObjects = GameObject.FindGameObjectsWithTag("AvoidableObject");
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    public void ResetTraining(Vector3 position)
-    {
-        lastPos = position;
-        transform.position = position;
-        lastVelocity = new Vector3(0, -0.19f, 0);
-        if (!Predict)
+        while (true)
         {
-            rigidBody.velocity = lastVelocity;
+            var request = TelegramFactory.CreateBeginTrainingRequest();
+            externalCommunication.SendAsynch(request);
+            System.Threading.Thread.Sleep(100);
         }
     }
 
-    private void RequestAnswerCallback(Telegrams.Request requestAnswer)
+    public void StartTensorflowTrainer()
     {
-        var prediction_y = requestAnswer.PredictionY;
-        lastPos.x += prediction_y[0];
-        lastPos.y += prediction_y[1];
-        lastPos.z += prediction_y[2];
-
-        lastVelocity.x += prediction_y[3];
-        lastVelocity.y += prediction_y[4];
-        lastVelocity.z += prediction_y[5];
-
-        waitingForCallback = false;
+        isTraining = true;
     }
 
-    private void FixedUpdate()
+    public void StopTensorflowTrainer()
     {
-        if (Paused)
+        isTraining = false;
+    }
+
+    public void SkipNextStep()
+    {
+        lastVelocity = new Vector3(0, 0, 0);
+    }
+
+    void FixedUpdate()
+    {
+        if (!isTraining)
         {
-            waitingForCallback = false;
             return;
         }
 
-        if (Predict)
-        {
-            if (waitingForCallback == false)
-            {
-                float[] predict_x = {
-                    lastPos.x,
-                    lastPos.y,
-                    lastPos.z,
-                    lastVelocity.x,
-                    lastVelocity.y,
-                    lastVelocity.z
-                };
-
-                var request = TelegramFactory.CreatePredictRequest(predict_x);
-                externalCommunication.SendAsynch(request, RequestAnswerCallback);
-                waitingForCallback = true;
-            }
-
-            transform.position = new Vector3(
-                                        lastPos.x,
-                                        lastPos.y,
-                                        lastPos.z);
-        }
-        else
-        {
-            float[] training_x = {
+        float[] training_x = {
                 lastPos.x,
                 lastPos.y,
                 lastPos.z,
@@ -94,7 +60,7 @@ public class TensorflowTrainer : MonoBehaviour
                 lastVelocity.z
             };
 
-            float[] training_y = {
+        float[] training_y = {
                 transform.position.x - lastPos.x,
                 transform.position.y - lastPos.y,
                 transform.position.z - lastPos.z,
@@ -103,17 +69,13 @@ public class TensorflowTrainer : MonoBehaviour
                 rigidBody.velocity.z - lastVelocity.z
             };
 
-            // print(training_x[0] + " " + training_x[1] + " " + training_x[2] + " " + training_x[3] + " " + training_x[4] + " " + training_x[5] + " ");
-            // print(training_y[0] + " " + training_y[1] + " " + training_y[2] + " " + training_y[3] + " " + training_y[4] + " " + training_y[5] + " ");
-
-            if (lastVelocity != new Vector3(0, 0, 0))
-            {
-                var request = TelegramFactory.CreateAddTrainingDataRequest(training_x, training_y);
-                externalCommunication.SendAsynch(request);
-            }
-
-            lastPos = transform.position;
-            lastVelocity = rigidBody.velocity;
+        if (lastVelocity != new Vector3(0, 0, 0))
+        {
+            var request = TelegramFactory.CreateAddTrainingDataRequest(training_x, training_y);
+            externalCommunication.SendAsynch(request);
         }
+
+        lastPos = transform.position;
+        lastVelocity = rigidBody.velocity;
     }
 }

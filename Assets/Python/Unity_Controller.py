@@ -9,9 +9,10 @@ class Unity_Controller:
     def message_received(self, data, address):
         telegram = Telegrams.Request()
         telegram.ParseFromString(data)
-        self._incoming_queue.put((address, telegram))
+        self._incoming_queue.put((telegram, address))
 
     def __init__(self, ip, port, _incoming_queue_size = 10000):
+        self._max_queue_cached = 0
         buffer_size = 1024
 
         self._incoming_queue = queue.Queue(_incoming_queue_size)

@@ -4,6 +4,7 @@ import Model_Training
 import Training_Database
 import protobuf.Telegrams_pb2 as Telegrams
 import numpy as np
+import time;
 
 class Main:
     unity_controller = None
@@ -14,7 +15,7 @@ class Main:
     def command_handler(self):
         incoming_telegram_queue = self.unity_controller.get_incoming_queue()
         while (True):
-            (address, telegram) = incoming_telegram_queue.get(block=True)
+            (telegram, address) = incoming_telegram_queue.get(block=True)
 
             if (telegram.command == Telegrams.Request.ADD_TRAINING_DATA):
                 # print("Request received: ADD TRAINING DATA")
@@ -35,6 +36,7 @@ class Main:
                 self.unity_controller.send(request, address)
 
             if (telegram.command == Telegrams.Request.PREDICT):
+                start_time = time.time()
                 # print("Request received: PREDICT")
                 predict_x = np.array(telegram.predict_x)
                 predict_x = np.expand_dims(predict_x, axis=0)
@@ -42,15 +44,20 @@ class Main:
                 request = self.telegram_factory.Create_Predict_Request(prediction_y, telegram.transaction_id)
                 self.unity_controller.send(request, address)
 
+                elapsed_time = time.time() - start_time
+                print('Time taken to handle request: ' + str(elapsed_time))                
+
     def __init__(self):
+        training_database_path = "c:/temp/database.dat"
+        model_path = "c:/temp/tensorflow/models/physicsEmulationModel"
         model_inputs = 6
         model_outputs = 6
 
         ip = "127.0.0.1"
         port = 11000
 
-        self.training_database = Training_Database.Training_Database("c:/temp/database.dat", model_inputs, model_outputs, 1000000)
-        self.model_training = Model_Training.Model_Training(model_inputs, model_outputs)
+        self.training_database = Training_Database.Training_Database(training_database_path, model_inputs, model_outputs, 1000000)
+        self.model_training = Model_Training.Model_Training(model_inputs, model_outputs, model_path, load_existing_model=True)
         self.telegram_factory = Telegram_Factory.Telegram_Factory()
         self.unity_controller = Unity_Controller.Unity_Controller(ip, port)
         self.command_handler()

@@ -17,6 +17,7 @@ class Udp_Server:
         self._sock.sendto(protobuf_message.SerializeToString(), address)
 
     def __init__(self, ip, port, buffer_size, message_received_callback):
+        self._messages_received = 0
         self.ip = ip
         self.port = port
         self.buffer_size = buffer_size
