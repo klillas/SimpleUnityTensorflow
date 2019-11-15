@@ -46,7 +46,7 @@ public class ExperimentReset : MonoBehaviour
                 tensorflowPredictor.SetVelocity(newVelocity);
             }
 
-            GetComponent<TensorflowTrainer>().SkipNextStep();
+            GetComponent<TensorflowTrainer>().ResetTraining();
         }
     }
 }

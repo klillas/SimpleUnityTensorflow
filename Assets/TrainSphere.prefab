@@ -11,13 +11,12 @@ GameObject:
   - component: {fileID: 1549101797595105561}
   - component: {fileID: 1549101797595105562}
   - component: {fileID: 1549101797595105563}
-  - component: {fileID: 1549101797595105564}
   - component: {fileID: 1549101797595105560}
   - component: {fileID: 1549101797595105575}
   - component: {fileID: 46813406}
   - component: {fileID: 5063071336712171438}
   m_Layer: 0
-  m_Name: Sphere
+  m_Name: TrainSphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -83,19 +82,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!135 &1549101797595105564
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1549101797595105565}
-  m_Material: {fileID: 13400000, guid: 86f0140e4ea972d43aa35e40d6799bd2, type: 2}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &1549101797595105560
 Rigidbody:
   m_ObjectHideFlags: 0
