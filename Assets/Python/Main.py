@@ -30,7 +30,8 @@ class Main:
             if (telegram.command == Telegrams.Request.BEGIN_TRAINING):
                 print("Request received: BEGIN TRAINING")
                 training_x, training_y = self.training_database.Get_Training_Data()
-                self.model_training.Train_Epochs(training_x, training_y, 1)
+                while (True):
+                    self.model_training.Train_Epochs(training_x, training_y, 1)
 
                 request = self.telegram_factory.Create_Training_Finished_Request(telegram.transaction_id)
                 self.unity_controller.send(request, address)
@@ -48,19 +49,32 @@ class Main:
                 print('Time taken to handle request: ' + str(elapsed_time))                
 
     def __init__(self):
-        training_database_path = "c:/temp/database.dat"
-        model_path = "c:/temp/tensorflow/models/physicsEmulationModel"
-        model_inputs = 6
-        model_outputs = 6
+        training_database_path = "g:/temp/database.dat"
+        model_path = "g:/temp/tensorflow/models/physicsEmulationModel"
+        tensorboard_log_dir = 'g:\\temp\\tensorboard\\'
+        model_inputs = 600
+        model_outputs = 300
 
         ip = "127.0.0.1"
         port = 11000
 
-        self.training_database = Training_Database.Training_Database(training_database_path, model_inputs, model_outputs, 1000000)
-        self.model_training = Model_Training.Model_Training(model_inputs, model_outputs, model_path, load_existing_model=True)
-        self.telegram_factory = Telegram_Factory.Telegram_Factory()
-        self.unity_controller = Unity_Controller.Unity_Controller(ip, port)
-        self.command_handler()
+        self.training_database = Training_Database.Training_Database(
+            training_database_path,
+            model_inputs,
+            model_outputs,
+            1000000)
+        
+        self.model_training = Model_Training.Model_Training(
+            model_inputs,
+            model_outputs,
+            model_path,
+            tensorboard_log_dir=tensorboard_log_dir,
+            load_existing_model=True)
 
+        self.telegram_factory = Telegram_Factory.Telegram_Factory()
+
+        self.unity_controller = Unity_Controller.Unity_Controller(ip, port)
+
+        self.command_handler()
 
 main = Main()

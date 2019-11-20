@@ -1,84 +1,115 @@
 ﻿using Assets;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Telegrams;
 using UnityEngine;
 
 public class TensorflowPredictor : MonoBehaviour
 {
-    DateTime lastPhysicsUpdate;
-    Vector3 currentVelocity;
-    bool fixedUpdateRun = false;
     ExternalCommunication externalCommunication;
-    bool isPredicting;
+    Queue<Vector3> bufferedVelocityPredictions;
+    List<GameObject> waterDrops;
 
-    // Start is called before the first frame update
-    public TensorflowPredictor()
+    private void Start()
     {
-        isPredicting = false;
-        lastPhysicsUpdate = DateTime.Now;
+        bufferedVelocityPredictions = new Queue<Vector3>();
         externalCommunication = ExternalCommunication.GetSingleton();
-        currentVelocity = new Vector3(0, 0, 0);
-    }
-
-    public void StartTensorflowPredictor()
-    {
-        isPredicting = true;
+        waterDrops = GameObject.FindGameObjectsWithTag("WaterDrop").ToList();
         CreatePredictRequest();
-    }
-
-    public void StopTensorflowPredictor()
-    {
-        isPredicting = false;
-    }
-
-    public void SetVelocity(Vector3 newVelocity)
-    {
-        currentVelocity = newVelocity;
     }
 
     private void CreatePredictRequest()
     {
-        if (!isPredicting)
+        float positionReduceFactor = 1000;
+        var predict_x = new List<float>();
+
+        // Find the group middle position
+        Vector3 startPos = new Vector3();
+        foreach (var waterDrop in waterDrops)
         {
-            return;
+            startPos += waterDrop.transform.position;
+        }
+        startPos /= waterDrops.Count();
+
+        // Resize to position the first positionReduceFactor^3 within 0-1
+        startPos /= positionReduceFactor;
+
+        foreach (var waterDrop in waterDrops)
+        {
+            var position = waterDrop.transform.position / positionReduceFactor;
+            var velocity = waterDrop.GetComponent<WaterDropBody>().Velocity;
+
+            predict_x.Add(velocity.x);
+            predict_x.Add(velocity.y);
+            predict_x.Add(velocity.z);
+            predict_x.Add(position.x);
+            predict_x.Add(position.y);
+            predict_x.Add(position.z);
         }
 
-        float[] predict_x = {
-                transform.position.x,
-                transform.position.y,
-                transform.position.z,
-                currentVelocity.x,
-                currentVelocity.y,
-                currentVelocity.z
-            };
         var request = TelegramFactory.CreatePredictRequest(predict_x);
         externalCommunication.SendAsynch(request, CreatePredictRequestAnswer);
     }
 
     private void CreatePredictRequestAnswer(Request requestAnswer)
     {
-        if (DateTime.Now - lastPhysicsUpdate < TimeSpan.FromSeconds(Time.fixedDeltaTime))
-        {
-            System.Threading.Thread.Sleep(TimeSpan.FromSeconds(Time.fixedDeltaTime) - (DateTime.Now - lastPhysicsUpdate));
-        }
-        else
-        {
-            Debug.Log("Time since last physics update: " + (DateTime.Now - lastPhysicsUpdate).TotalSeconds);
-        }
-
-        lastPhysicsUpdate = DateTime.Now;
-
         var prediction_y = requestAnswer.PredictionY;
+        int predictionIndex = 0;
+        foreach (var waterDrop in waterDrops)
+        {
+            var velocityDiff = new Vector3(
+                prediction_y[predictionIndex],
+                prediction_y[predictionIndex + 1],
+                prediction_y[predictionIndex + 2]);
+
+            predictionIndex += 3;
+
+            var waterDropBody = waterDrop.GetComponent<WaterDropBody>();
+            waterDropBody.Velocity += velocityDiff;
+            Vector3 newPosition = waterDrop.transform.position;
+            newPosition.x += waterDropBody.Velocity.x * Time.fixedDeltaTime;
+            newPosition.y += waterDropBody.Velocity.y * Time.fixedDeltaTime;
+            newPosition.z += waterDropBody.Velocity.z * Time.fixedDeltaTime;
+            waterDrop.transform.position = newPosition;
+
+            CreatePredictRequest();
+        }
+
+        /*
+        for (int i = 0; i < prediction_y.Count; i = i + 3)
+        {
+            bufferedVelocityPredictions.Enqueue(new Vector3(
+                prediction_y[i],
+                prediction_y[i + 1],
+                prediction_y[i + 2]));
+        }
+        */
+    }
+
+    private void FixedUpdate()
+    {
+        /*
+        if (bufferedVelocityPredictions.Count == 10)
+        {
+            CreatePredictRequest();
+        }
+
+        if (bufferedVelocityPredictions.Count == 0)
+        {
+            return;
+        }
+
+        var prediction = bufferedVelocityPredictions.Dequeue();
+        currentVelocity.x += prediction[0];
+        currentVelocity.y += prediction[1];
+        currentVelocity.z += prediction[2];
+        Debug.Log(currentVelocity.x + " " + currentVelocity.y + " " + currentVelocity.z);
         var newPos = transform.position;
-        newPos.x += prediction_y[0];
-        newPos.y += prediction_y[1];
-        newPos.z += prediction_y[2];
+        newPos.x += currentVelocity.x * Time.fixedDeltaTime;
+        newPos.y += currentVelocity.y * Time.fixedDeltaTime;
+        newPos.z += currentVelocity.z * Time.fixedDeltaTime;
         transform.position = newPos;
-
-        currentVelocity.x += prediction_y[3];
-        currentVelocity.y += prediction_y[4];
-        currentVelocity.z += prediction_y[5];
-
-        CreatePredictRequest();
+        */
     }
 }

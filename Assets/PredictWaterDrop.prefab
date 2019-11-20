@@ -11,11 +11,11 @@ GameObject:
   - component: {fileID: 9050223954024080666}
   - component: {fileID: 9050223954024080665}
   - component: {fileID: 9050223954024080664}
-  - component: {fileID: 3361090303581062061}
-  - component: {fileID: 1383820037135951220}
+  - component: {fileID: 2205454243689304048}
+  - component: {fileID: -7716966631640971702}
   m_Layer: 0
-  m_Name: PredictSphere
-  m_TagString: Untagged
+  m_Name: PredictWaterDrop
+  m_TagString: WaterDrop
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -28,7 +28,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9050223954024080670}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.24, y: -58.53, z: 83.11}
+  m_LocalPosition: {x: -0.79580355, y: 0.071284056, z: -0.44728684}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -80,7 +80,20 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!114 &3361090303581062061
+--- !u!114 &2205454243689304048
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9050223954024080670}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74d71993556f514459f6ed19905388c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Velocity: {x: 0, y: 0, z: 0}
+--- !u!114 &-7716966631640971702
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -92,18 +105,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 188c19abedc1d4c4e944a764ae9a021e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ResetTimeMS: 10000
+  ResetTimeMS: 6000
   MaxStartDiff: 1.5
   MaxStartVelocity: 1.5
---- !u!114 &1383820037135951220
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9050223954024080670}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 657e5f299730cad4787413ff7e5851bf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

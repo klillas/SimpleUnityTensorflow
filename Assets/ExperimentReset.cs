@@ -16,6 +16,7 @@ public class ExperimentReset : MonoBehaviour
     {
         startPosition = transform.position;
         lastReset = DateTime.Now;
+        Reset();
     }
 
     // Update is called once per frame
@@ -24,29 +25,32 @@ public class ExperimentReset : MonoBehaviour
         if (DateTime.Now - lastReset >= TimeSpan.FromMilliseconds(ResetTimeMS))
         {
             lastReset = DateTime.Now;
-            transform.position = startPosition + new Vector3(
-                Random.Range(-MaxStartDiff, MaxStartDiff),
-                Random.Range(-MaxStartDiff, MaxStartDiff),
-                Random.Range(-MaxStartDiff, MaxStartDiff));
+            Reset();
+        }
+    }
 
-            var newVelocity = new Vector3(
-                    Random.Range(-MaxStartVelocity, MaxStartVelocity),
-                    Random.Range(-MaxStartVelocity, MaxStartVelocity),
-                    Random.Range(-MaxStartVelocity, MaxStartVelocity));
+    private void Reset()
+    {
+        transform.position = startPosition + new Vector3(
+            Random.Range(-MaxStartDiff, MaxStartDiff),
+            Random.Range(-MaxStartDiff, MaxStartDiff),
+            Random.Range(-MaxStartDiff, MaxStartDiff));
 
-            var rigidBody = GetComponent<Rigidbody>();
-            if (rigidBody != null)
-            {
-                GetComponent<Rigidbody>().velocity = newVelocity;
-            }
+        var newVelocity = new Vector3(
+                Random.Range(-MaxStartVelocity, MaxStartVelocity),
+                Random.Range(-MaxStartVelocity, MaxStartVelocity),
+                Random.Range(-MaxStartVelocity, MaxStartVelocity));
 
-            var tensorflowPredictor = GetComponent<TensorflowPredictor>();
-            if (tensorflowPredictor != null)
-            {
-                tensorflowPredictor.SetVelocity(newVelocity);
-            }
+        var rigidBody = GetComponent<Rigidbody>();
+        if (rigidBody != null)
+        {
+            GetComponent<Rigidbody>().velocity = newVelocity;
+        }
 
-            GetComponent<TensorflowTrainer>().ResetTraining();
+        var waterDropBody = GetComponent<WaterDropBody>();
+        if (waterDropBody != null)
+        {
+            waterDropBody.Velocity = newVelocity;
         }
     }
 }

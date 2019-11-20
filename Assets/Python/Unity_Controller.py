@@ -13,7 +13,7 @@ class Unity_Controller:
 
     def __init__(self, ip, port, _incoming_queue_size = 10000):
         self._max_queue_cached = 0
-        buffer_size = 1024
+        buffer_size = 10000
 
         self._incoming_queue = queue.Queue(_incoming_queue_size)
         self._udp_server = Udp_Server.Udp_Server(ip, port, buffer_size, self.message_received)        

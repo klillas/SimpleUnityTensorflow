@@ -1,77 +1,83 @@
 ﻿using Assets;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-public class TensorflowTrainer : MonoBehaviour
+public class TensorflowTrainer : MonoBehaviour, ITensorflowTrainer
 {
     ExternalCommunication externalCommunication;
-    Rigidbody rigidBody;
-    Vector3 lastPos;
-    int stepsToPredict = 5;
-    Queue<Vector3> lastVelocity;
-    GameObject[] avoidableObjects;
-    bool isTraining = false;
+    int stepsToPredict = 1;
+    List<GameObject> waterDrops;
 
     // Start is called before the first frame update
     void Start()
     {
+        UpdateTracker.SubscribeNotifyEvent(UpdateTracker.UpdateEventType.AllFixedUpdateSet, NotifyAllFixedUpdateSet);
         externalCommunication = ExternalCommunication.GetSingleton();
-        rigidBody = GetComponent<Rigidbody>();
-
-        lastPos = transform.position;
-        lastVelocity = new Queue<Vector3>(stepsToPredict);
-        avoidableObjects = GameObject.FindGameObjectsWithTag("AvoidableObject");
+        waterDrops = GameObject.FindGameObjectsWithTag("WaterDrop").ToList();
     }
 
-    public void StartTensorflowTrainer()
+    static float largestPosition = float.MinValue;
+    void NotifyAllFixedUpdateSet(UpdateTracker.UpdateEventType updateEventType)
     {
-        isTraining = true;
-    }
+        float positionReduceFactor = 1000;
+        var training_x = new List<float>();
+        var training_y = new List<float>();
 
-    public void StopTensorflowTrainer()
-    {
-        isTraining = false;
-    }
+        // Find the group middle position
+        Vector3 startPos = new Vector3();
+        foreach (var waterDrop in waterDrops)
+        {
+            startPos += waterDrop.transform.position;
+        }
+        startPos /= waterDrops.Count();
 
-    public void ResetTraining()
-    {
-        lastVelocity.Clear();
+        // Resize to position the first positionReduceFactor^3 within 0-1
+        startPos /= positionReduceFactor;
+
+        if (startPos.magnitude > largestPosition)
+        {
+            largestPosition = startPos.magnitude;
+            Debug.Log("New max position: " + largestPosition);
+        }
+
+        foreach (var waterDrop in waterDrops)
+        {
+            var stateHistory = waterDrop.GetComponent<StateHistory>();
+            var rigidBody = waterDrop.GetComponent<Rigidbody>();
+            var positionHistory = stateHistory.GetHistory<Vector3>(StateHistory.HistoryParameterType.Position);
+            var velocityHistory = stateHistory.GetHistory<Vector3>(StateHistory.HistoryParameterType.Velocity);
+
+            if (velocityHistory.Count() == stepsToPredict)
+            {
+                var lastPos = (positionHistory.Dequeue() - startPos) / positionReduceFactor;
+                var earlierVelocity = velocityHistory.Dequeue();
+                training_x.Add(earlierVelocity.x);
+                training_x.Add(earlierVelocity.y);
+                training_x.Add(earlierVelocity.z);
+                training_x.Add(lastPos.x);
+                training_x.Add(lastPos.y);
+                training_x.Add(lastPos.z);
+
+                foreach (var laterVelocity in velocityHistory)
+                {
+                    training_y.Add(laterVelocity.x - earlierVelocity.x);
+                    training_y.Add(laterVelocity.y - earlierVelocity.y);
+                    training_y.Add(laterVelocity.z - earlierVelocity.z);
+                    earlierVelocity = laterVelocity;
+                }
+                training_y.Add(rigidBody.velocity.x - earlierVelocity.x);
+                training_y.Add(rigidBody.velocity.y - earlierVelocity.y);
+                training_y.Add(rigidBody.velocity.z - earlierVelocity.z);
+            }
+        }
+
+        var request = TelegramFactory.CreateAddTrainingDataRequest(training_x.ToArray(), training_y.ToArray());
+        externalCommunication.SendAsynch(request);
     }
 
     void FixedUpdate()
     {
-        if (!isTraining)
-        {
-            return;
-        }
 
-        if (lastVelocity.Count == stepsToPredict)
-        {
-            var inputVelocity = lastVelocity.Dequeue();
-
-            float[] training_x = {
-                lastPos.x,
-                lastPos.y,
-                lastPos.z,
-                inputVelocity.x,
-                inputVelocity.y,
-                inputVelocity.z
-            };
-
-            float[] training_y = {
-                transform.position.x - lastPos.x,
-                transform.position.y - lastPos.y,
-                transform.position.z - lastPos.z,
-                rigidBody.velocity.x - inputVelocity.x,
-                rigidBody.velocity.y - inputVelocity.y,
-                rigidBody.velocity.z - inputVelocity.z
-            };
-
-            var request = TelegramFactory.CreateAddTrainingDataRequest(training_x, training_y);
-            externalCommunication.SendAsynch(request);
-        }
-
-        lastPos = transform.position;
-        lastVelocity.Enqueue(rigidBody.velocity);
     }
 }
