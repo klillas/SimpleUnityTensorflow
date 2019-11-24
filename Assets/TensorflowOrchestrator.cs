@@ -20,6 +20,7 @@ public class TensorflowOrchestrator : MonoBehaviour
     public float MaxStartDiff = (float)1.5;
     public float MaxStartVelocity = (float)1.5;
     public int StepsToRemember = 1;
+    public bool BeginLearningAfterDataGeneration = false;
 
     private List<GameObject> trainGameObjects;
     private List<GameObject> predictGameObjects;
@@ -48,8 +49,8 @@ public class TensorflowOrchestrator : MonoBehaviour
                         Random.Range(-MaxStartVelocity, MaxStartVelocity));
 
                 var trainObject = (Instantiate(TrainPrefab, transform.position, Quaternion.identity));
-                trainObject.GetComponent<ExperimentReset>().MaxStartDiff = MaxStartDiff;
-                trainObject.GetComponent<ExperimentReset>().MaxStartVelocity = MaxStartVelocity;
+                trainObject.GetComponent<WaterDropReset>().MaxStartDiff = MaxStartDiff;
+                trainObject.GetComponent<WaterDropReset>().MaxStartVelocity = MaxStartVelocity;
                 var stateHistory = trainObject.GetComponent<StateHistory>();
                 stateHistory.HistoryParameterTypes.Add(StateHistory.HistoryParameterType.Position);
                 stateHistory.HistoryParameterTypes.Add(StateHistory.HistoryParameterType.Velocity);
@@ -66,8 +67,11 @@ public class TensorflowOrchestrator : MonoBehaviour
                     {
                         Destroy(trainGameObject);
                     }
-                    var beginTrainingRequest = TelegramFactory.CreateBeginTrainingRequest();
-                    externalCommunication.SendAsynch(beginTrainingRequest, TrainEpoch);
+                    if (BeginLearningAfterDataGeneration)
+                    {
+                        var beginTrainingRequest = TelegramFactory.CreateBeginTrainingRequest();
+                        externalCommunication.SendAsynch(beginTrainingRequest, TrainEpoch);
+                    }
                 });
             })).Start();
         }

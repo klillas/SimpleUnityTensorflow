@@ -10,18 +10,21 @@ public class TensorflowPredictor : MonoBehaviour
     ExternalCommunication externalCommunication;
     Queue<Vector3> bufferedVelocityPredictions;
     List<GameObject> waterDrops;
+    List<GameObject> planes;
+    float positionReduceFactor = 1000;
+    float velocityReduceFactor = 1;
 
     private void Start()
     {
         bufferedVelocityPredictions = new Queue<Vector3>();
         externalCommunication = ExternalCommunication.GetSingleton();
         waterDrops = GameObject.FindGameObjectsWithTag("WaterDrop").ToList();
+        planes = GameObject.FindGameObjectsWithTag("Plane").ToList();
         CreatePredictRequest();
     }
 
     private void CreatePredictRequest()
     {
-        float positionReduceFactor = 1000;
         var predict_x = new List<float>();
 
         // Find the group middle position
@@ -32,20 +35,27 @@ public class TensorflowPredictor : MonoBehaviour
         }
         startPos /= waterDrops.Count();
 
-        // Resize to position the first positionReduceFactor^3 within 0-1
-        startPos /= positionReduceFactor;
-
         foreach (var waterDrop in waterDrops)
         {
-            var position = waterDrop.transform.position / positionReduceFactor;
-            var velocity = waterDrop.GetComponent<WaterDropBody>().Velocity;
+            var reducedPosition = (waterDrop.transform.position - startPos) / positionReduceFactor;
+            var reducedVelocity = waterDrop.GetComponent<WaterDropBody>().Velocity / velocityReduceFactor;
 
-            predict_x.Add(velocity.x);
-            predict_x.Add(velocity.y);
-            predict_x.Add(velocity.z);
-            predict_x.Add(position.x);
-            predict_x.Add(position.y);
-            predict_x.Add(position.z);
+            predict_x.Add(reducedPosition.x);
+            predict_x.Add(reducedPosition.y);
+            predict_x.Add(reducedPosition.z);
+        }
+
+        foreach (var plane in planes)
+        {
+            var verticeList = plane.GetComponent<MeshFilter>().sharedMesh.vertices;
+            List<int> verticeIndexes = new List<int> { 0, 10, 110, 120 };
+            foreach (var verticeIndex in verticeIndexes)
+            {
+                var corner = (plane.transform.TransformPoint(verticeList[verticeIndex]) - startPos) / positionReduceFactor;
+                predict_x.Add(corner.x);
+                predict_x.Add(corner.y);
+                predict_x.Add(corner.z);
+            }
         }
 
         var request = TelegramFactory.CreatePredictRequest(predict_x);
@@ -63,6 +73,8 @@ public class TensorflowPredictor : MonoBehaviour
                 prediction_y[predictionIndex + 1],
                 prediction_y[predictionIndex + 2]);
 
+            velocityDiff *= velocityReduceFactor;
+
             predictionIndex += 3;
 
             var waterDropBody = waterDrop.GetComponent<WaterDropBody>();
@@ -72,9 +84,9 @@ public class TensorflowPredictor : MonoBehaviour
             newPosition.y += waterDropBody.Velocity.y * Time.fixedDeltaTime;
             newPosition.z += waterDropBody.Velocity.z * Time.fixedDeltaTime;
             waterDrop.transform.position = newPosition;
-
-            CreatePredictRequest();
         }
+
+        CreatePredictRequest();
 
         /*
         for (int i = 0; i < prediction_y.Count; i = i + 3)

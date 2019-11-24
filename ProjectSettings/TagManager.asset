@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 2
   tags:
   - WaterDrop
+  - Plane
   layers:
   - Default
   - TransparentFX

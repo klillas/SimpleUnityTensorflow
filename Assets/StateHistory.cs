@@ -70,24 +70,36 @@ public class StateHistory : MonoBehaviour
     private void UpdatePositionHistory()
     {
         var cache = historyDictionary[HistoryParameterType.Position] as ParameterCache<Vector3>;
-        cache.Parameters.Enqueue(transform.position);
+        cache.UpdateCurrentValue(transform.position);
     }
 
     private void UpdateVelocityHistory()
     {
         var cache = historyDictionary[HistoryParameterType.Velocity] as ParameterCache<Vector3>;
-        cache.Parameters.Enqueue(GetComponent<Rigidbody>().velocity);
+        cache.UpdateCurrentValue(GetComponent<Rigidbody>().velocity);
     }
 
     private class ParameterCache<T> : ParameterCache
     {
+        public T CurrentValue;
         public Queue<T> Parameters;
+        private int QueueSize;
 
-        public ParameterCache(int stepsToRemember)
+        public ParameterCache(int queueSize)
         {
-            Parameters = new Queue<T>(stepsToRemember);
+            QueueSize = queueSize;
+            Parameters = new Queue<T>(queueSize);
         }
 
+        public void UpdateCurrentValue(T newCurrentValue)
+        {
+            if (Parameters.Count == QueueSize)
+            {
+                Parameters.Dequeue();
+            }
+            Parameters.Enqueue(CurrentValue);
+            CurrentValue = newCurrentValue;
+        }
     }
 
     private class ParameterCache

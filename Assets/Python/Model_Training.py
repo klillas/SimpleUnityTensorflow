@@ -13,9 +13,15 @@ from tensorflow.keras.layers import concatenate, Lambda
 from tensorflow.keras.layers import BatchNormalization
 from tensorflow.python.keras.layers.advanced_activations import LeakyReLU
 from tensorflow.keras import Input, Model, callbacks
+from tensorflow.keras.backend import sigmoid
+from tensorflow.keras.utils import get_custom_objects
 import os
 import numpy as np
 import datetime
+import time
+
+def swish(x, beta = 1):
+    return (x * sigmoid(beta * x))
 
 class Model_Training:
     model = None
@@ -23,65 +29,49 @@ class Model_Training:
     save_model_after_epoch = None
     tensorboard_callback = None
     tensorboard_log_dir = None
+    last_save_time = None
 
     def _Create_Model(self, inputs, outputs):
+        get_custom_objects().update({'swish': Activation(swish)})
+
         input_layer = Input(shape=(inputs), name='input')
         model = Sequential()
         model.add(input_layer)
         model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dense(300))
+        # model.add(LeakyReLU(alpha=0.1))
+        model.add(Dense(600, activation='swish'))
         model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dense(300))
+        # model.add(LeakyReLU(alpha=0.1))
+        model.add(Dense(600, activation='swish'))
         model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dense(300))
+        # model.add(LeakyReLU(alpha=0.1))
+        model.add(Dense(600, activation='swish'))
         model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dense(300))
+        # model.add(LeakyReLU(alpha=0.1))
+        model.add(Dense(600, activation='swish'))
         model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dense(300))
+        # model.add(LeakyReLU(alpha=0.1))
+        model.add(Dense(600, activation='swish'))
         model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dense(300))
+        # model.add(LeakyReLU(alpha=0.1))
+        model.add(Dense(600, activation='swish'))
         model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dense(300))
+        # model.add(LeakyReLU(alpha=0.1))
+        model.add(Dense(600, activation='swish'))
         model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dense(300))
+        # model.add(LeakyReLU(alpha=0.1))
+        model.add(Dense(600, activation='swish'))
         model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dense(300))
-        model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dense(300))
-        model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dense(300))
-        model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dense(300))
-        model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dense(300))
-        model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dense(300))
-        model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dense(300))
-        model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.1))                                        
-        model.add(Dense(outputs))
-        #model.add(Activation("LeakyReLU"))
+        model.add(Dense(outputs, activation='linear'))
+        # model.add(Dense(outputs, activation='tanh'))
+        # model.add(Dense(outputs, activation='sigmoid'))
         return model
 
     def _Compile_Model(self, model):
         optimizer = Adam(lr=0.0010000)
-        #optimizer = SGD(learning_rate=0.0003, momentum=0.5, nesterov=False)
+        # optimizer = Adam(lr=1.0010000)
+        # optimizer = SGD(learning_rate=0.00100000, momentum=0.2, nesterov=False)
+        # optimizer = SGD(learning_rate=0.10000000, momentum=0.2, nesterov=False)
         model.compile(loss='mean_squared_error', optimizer=optimizer,metrics=['accuracy'])
         print(model.summary())
         return model
@@ -104,9 +94,12 @@ class Model_Training:
             verbose=1)
 
         #self.model.fit(train_x, train_y, epochs=epochs, batch_size=10000, callbacks=[self.tensorboard_callback])
-        self.model.fit(train_x, train_y, epochs=epochs, batch_size=10000)
-        if (self.save_model_after_epoch):
-            self.model.save_weights(self.model_path)
+        self.model.fit(train_x, train_y, epochs=epochs, batch_size=20000)
+
+        if time.time() - self.last_save_time > 60:
+            self.last_save_time = time.time()
+            if (self.save_model_after_epoch):
+                self.model.save_weights(self.model_path)
 
     def Predict(self, predict_x):
         prediction_y = self.model.predict(predict_x)
@@ -126,6 +119,7 @@ class Model_Training:
         self.model_path = model_path
         self.model = self._Create_Model(inputs, outputs)
         self._Setup_Tensorboard()
+        self.last_save_time = time.time()
 
         if not os.path.exists(self.model_path):
             os.makedirs(self.model_path)

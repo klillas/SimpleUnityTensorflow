@@ -105,6 +105,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 188c19abedc1d4c4e944a764ae9a021e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ResetTimeMS: 6000
-  MaxStartDiff: 1.5
-  MaxStartVelocity: 1.5
+  ResetTimeMS: 30000
+  MaxStartDiff: 2
+  MaxStartVelocity: 2
+  MaxStartAngle: 15

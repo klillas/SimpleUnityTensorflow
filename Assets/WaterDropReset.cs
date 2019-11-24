@@ -2,11 +2,12 @@
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class ExperimentReset : MonoBehaviour
+public class WaterDropReset : MonoBehaviour
 {
     public int ResetTimeMS = 6000;
     public float MaxStartDiff = (float)1.5;
     public float MaxStartVelocity = (float)1.5;
+    public float MaxStartAngle = 5;
 
     Vector3 startPosition;
     DateTime lastReset;
@@ -35,6 +36,12 @@ public class ExperimentReset : MonoBehaviour
             Random.Range(-MaxStartDiff, MaxStartDiff),
             Random.Range(-MaxStartDiff, MaxStartDiff),
             Random.Range(-MaxStartDiff, MaxStartDiff));
+
+        transform.rotation.Set(
+            Random.Range(-MaxStartAngle, MaxStartAngle),
+            Random.Range(-MaxStartAngle, MaxStartAngle),
+            Random.Range(-MaxStartAngle, MaxStartAngle),
+            Random.Range(-MaxStartAngle, MaxStartAngle));
 
         var newVelocity = new Vector3(
                 Random.Range(-MaxStartVelocity, MaxStartVelocity),

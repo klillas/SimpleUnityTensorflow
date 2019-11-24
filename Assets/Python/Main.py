@@ -46,35 +46,46 @@ class Main:
                 self.unity_controller.send(request, address)
 
                 elapsed_time = time.time() - start_time
-                print('Time taken to handle request: ' + str(elapsed_time))                
+                print('Time taken to handle request: ' + str(elapsed_time))
+
+    def train_manually(self):
+        training_x, training_y = self.training_database.Get_Training_Data(shuffle=True, ratio=1)
+        while (True):
+            self.model_training.Train_Epochs(training_x, training_y, 1)        
 
     def __init__(self):
-        training_database_path = "g:/temp/database.dat"
         model_path = "g:/temp/tensorflow/models/physicsEmulationModel"
         tensorboard_log_dir = 'g:\\temp\\tensorboard\\'
-        model_inputs = 600
-        model_outputs = 300
+        training_database_path = "g:/temp/database.dat"
+        #model_inputs = 18
+        model_inputs = 15
+        model_outputs = 3
+        load_existing_dataset = True
+        load_existing_model = True
 
         ip = "127.0.0.1"
         port = 11000
 
         self.training_database = Training_Database.Training_Database(
             training_database_path,
-            model_inputs,
+            model_inputs,   
             model_outputs,
-            1000000)
+            1000000,
+            load_database=load_existing_dataset)
         
         self.model_training = Model_Training.Model_Training(
             model_inputs,
             model_outputs,
             model_path,
             tensorboard_log_dir=tensorboard_log_dir,
-            load_existing_model=True)
+            load_existing_model=load_existing_model)
 
         self.telegram_factory = Telegram_Factory.Telegram_Factory()
 
         self.unity_controller = Unity_Controller.Unity_Controller(ip, port)
 
         self.command_handler()
+        self.training_database.Print_Random()
+        self.train_manually()
 
 main = Main()

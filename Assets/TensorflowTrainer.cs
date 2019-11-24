@@ -1,4 +1,5 @@
 ﻿using Assets;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -8,19 +9,30 @@ public class TensorflowTrainer : MonoBehaviour, ITensorflowTrainer
     ExternalCommunication externalCommunication;
     int stepsToPredict = 1;
     List<GameObject> waterDrops;
+    List<GameObject> planes;
+
+    private DateTime scriptStart;
+    private float delayStartMs = 300;
 
     // Start is called before the first frame update
     void Start()
     {
+        scriptStart = DateTime.Now;
         UpdateTracker.SubscribeNotifyEvent(UpdateTracker.UpdateEventType.AllFixedUpdateSet, NotifyAllFixedUpdateSet);
         externalCommunication = ExternalCommunication.GetSingleton();
         waterDrops = GameObject.FindGameObjectsWithTag("WaterDrop").ToList();
+        planes = GameObject.FindGameObjectsWithTag("Plane").ToList();
     }
 
-    static float largestPosition = float.MinValue;
     void NotifyAllFixedUpdateSet(UpdateTracker.UpdateEventType updateEventType)
     {
+        if (DateTime.Now - scriptStart < TimeSpan.FromMilliseconds(delayStartMs))
+        {
+            return;
+        }
+
         float positionReduceFactor = 1000;
+        float velocityReduceFactor = 1;
         var training_x = new List<float>();
         var training_y = new List<float>();
 
@@ -32,15 +44,6 @@ public class TensorflowTrainer : MonoBehaviour, ITensorflowTrainer
         }
         startPos /= waterDrops.Count();
 
-        // Resize to position the first positionReduceFactor^3 within 0-1
-        startPos /= positionReduceFactor;
-
-        if (startPos.magnitude > largestPosition)
-        {
-            largestPosition = startPos.magnitude;
-            Debug.Log("New max position: " + largestPosition);
-        }
-
         foreach (var waterDrop in waterDrops)
         {
             var stateHistory = waterDrop.GetComponent<StateHistory>();
@@ -50,14 +53,15 @@ public class TensorflowTrainer : MonoBehaviour, ITensorflowTrainer
 
             if (velocityHistory.Count() == stepsToPredict)
             {
-                var lastPos = (positionHistory.Dequeue() - startPos) / positionReduceFactor;
+                var lastPosReduced = (positionHistory.Dequeue() - startPos) / positionReduceFactor;
                 var earlierVelocity = velocityHistory.Dequeue();
-                training_x.Add(earlierVelocity.x);
-                training_x.Add(earlierVelocity.y);
-                training_x.Add(earlierVelocity.z);
-                training_x.Add(lastPos.x);
-                training_x.Add(lastPos.y);
-                training_x.Add(lastPos.z);
+                var reducedEarlierVelocity = earlierVelocity / velocityReduceFactor;
+                //training_x.Add(reducedEarlierVelocity.x);
+                //training_x.Add(reducedEarlierVelocity.y);
+                //training_x.Add(reducedEarlierVelocity.z);
+                training_x.Add(lastPosReduced.x);
+                training_x.Add(lastPosReduced.y);
+                training_x.Add(lastPosReduced.z);
 
                 foreach (var laterVelocity in velocityHistory)
                 {
@@ -66,14 +70,60 @@ public class TensorflowTrainer : MonoBehaviour, ITensorflowTrainer
                     training_y.Add(laterVelocity.z - earlierVelocity.z);
                     earlierVelocity = laterVelocity;
                 }
-                training_y.Add(rigidBody.velocity.x - earlierVelocity.x);
-                training_y.Add(rigidBody.velocity.y - earlierVelocity.y);
-                training_y.Add(rigidBody.velocity.z - earlierVelocity.z);
+                var velocityNow = rigidBody.velocity;
+                training_y.Add(velocityNow.x - earlierVelocity.x);
+                training_y.Add(velocityNow.y - earlierVelocity.y);
+                training_y.Add(velocityNow.z - earlierVelocity.z);
             }
         }
 
-        var request = TelegramFactory.CreateAddTrainingDataRequest(training_x.ToArray(), training_y.ToArray());
-        externalCommunication.SendAsynch(request);
+        //VerticeListToShow.Clear();
+        foreach (var plane in planes)
+        {
+            var verticeList = plane.GetComponent<MeshFilter>().sharedMesh.vertices;
+            List<int> verticeIndexes = new List<int> { 0, 10, 110, 120 };
+            foreach (var verticeIndex in verticeIndexes)
+            {
+                var corner = (plane.transform.TransformPoint(verticeList[verticeIndex]) - startPos) / positionReduceFactor;
+                training_x.Add(corner.x);
+                training_x.Add(corner.y);
+                training_x.Add(corner.z);
+            }
+
+            //VerticeListToShow.Add(plane.transform.TransformPoint(verticeList[0]));
+            //VerticeListToShow.Add(plane.transform.TransformPoint(verticeList[10]));
+            //VerticeListToShow.Add(plane.transform.TransformPoint(verticeList[110]));
+            //VerticeListToShow.Add(plane.transform.TransformPoint(verticeList[120]));  
+        }
+
+        bool badTraining = false;
+        foreach (var trainingData in training_y)
+        {
+            if (trainingData > 10 || trainingData < -10)
+            {
+                badTraining = true;
+                Debug.Log("Bad training data: " + trainingData);
+            }
+        }
+
+        if (!badTraining)
+        {
+            if (Math.Abs(training_y[1]) < 0.01)
+            {
+                Debug.LogError("Bad training data which is being sent: " + training_y[1]);
+            }
+            var request = TelegramFactory.CreateAddTrainingDataRequest(training_x.ToArray(), training_y.ToArray());
+            externalCommunication.SendAsynch(request);
+        }
+    }
+
+    List<Vector3> VerticeListToShow = new List<Vector3>();
+    void OnDrawGizmos()
+    {
+        foreach (var vertice in VerticeListToShow)
+        {
+            Gizmos.DrawSphere(vertice, 1);
+        }
     }
 
     void FixedUpdate()
